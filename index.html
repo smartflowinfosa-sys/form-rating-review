@@ -10,11 +10,13 @@
         body { font-family: 'IBM Plex Sans Arabic', sans-serif; background-color: #f8fafc; }
         .star { cursor: pointer; transition: color 0.2s, transform 0.2s; }
         .star:active { transform: scale(0.9); }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center min-h-screen p-6">
 
-    <div id="main-card" class="bg-white max-w-md w-full rounded-3xl shadow-xl p-8 text-center border border-slate-100">
+    <div id="main-card" class="bg-white max-w-md w-full rounded-3xl shadow-xl p-8 text-center border border-slate-100 animate-fade-in">
         
         <div class="mb-8">
             <h2 id="client-name" class="text-2xl font-bold text-slate-800 tracking-tight">مطعمنا المتميز</h2>
@@ -37,21 +39,21 @@
 
     <script>
         // المتغيرات الأساسية //
-        const WEBHOOK_URL = 'https://blue-boats-read.loca.lt/webhook/review-rate'; // تأكد من وضع رابط نفقك الحالي هنا
+        // الرابط الجديد الخاص بك //
+        const WEBHOOK_URL = 'https://five-dancers-think.loca.lt/webhook/review-rate'; 
 
         const urlParams = new URLSearchParams(window.location.search);
         const bookingId = urlParams.get('booking_id');
         let selectedRating = 0;
 
-        // تفاعل النجوم
         const stars = document.querySelectorAll('.star');
         const submitBtn = document.getElementById('submit-btn');
 
+        // تفاعل اختيار النجوم
         stars.forEach(star => {
             star.addEventListener('click', () => {
                 selectedRating = parseInt(star.getAttribute('data-value'));
                 
-                // تلوين النجوم
                 stars.forEach((s, index) => {
                     if (index < selectedRating) {
                         s.classList.remove('text-slate-200');
@@ -62,21 +64,22 @@
                     }
                 });
                 
-                // إظهار زر الإرسال
                 submitBtn.classList.remove('hidden');
+                submitBtn.classList.add('animate-fade-in');
             });
         });
 
-        // إرسال البيانات
+        // وظيفة إرسال البيانات إلى n8n
         async function submitRating() {
             if (!bookingId) {
-                alert('عذراً، الرابط غير صالح (مفقود رقم الحجز).');
+                alert('عذراً، الرابط غير صالح (رقم الحجز مفقود).');
                 return;
             }
 
             const status = document.getElementById('status-msg');
-            status.innerText = "جاري الإرسال...";
+            status.innerText = "جاري إرسال تقييمك...";
             status.className = "mt-4 text-sm font-medium text-slate-500 animate-pulse";
+            
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-50');
 
@@ -85,7 +88,7 @@
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'Bypass-Tunnel-Reminder': 'true' // الشفرة السرية لاختراق Localtunnel
+                        'Bypass-Tunnel-Reminder': 'true' // لتخطي صفحة تحذير Localtunnel
                     },
                     body: JSON.stringify({
                         booking_id: bookingId,
@@ -98,13 +101,14 @@
                         <div class="text-center py-8 animate-fade-in">
                             <div class="text-6xl mb-4">✨</div>
                             <h3 class="text-2xl font-bold text-slate-800 mb-2">شكرًا لتقييمك!</h3>
-                            <p class="text-slate-500">تم تسجيل رأيك بنجاح.</p>
+                            <p class="text-slate-500">تم تسجيل رأيك بنجاح، يسعدنا دائماً خدمتك.</p>
                         </div>`;
                 } else {
-                    throw new Error('Failed to send');
+                    throw new Error('Server error');
                 }
             } catch (error) {
-                status.innerText = "حدث خطأ في الشبكة، يرجى المحاولة مرة أخرى.";
+                console.error('Error:', error);
+                status.innerText = "حدث خطأ أثناء الإرسال، يرجى التحقق من اتصال الإنترنت.";
                 status.className = "mt-4 text-sm font-medium text-red-500";
                 submitBtn.disabled = false;
                 submitBtn.classList.remove('opacity-50');
