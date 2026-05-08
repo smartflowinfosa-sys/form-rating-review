@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقييم تجربتكم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'IBM Plex Sans Arabic', sans-serif; transition: background-color 0.5s ease; }
+        .star-btn { transition: all 0.2s ease; }
+        .star-btn:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body class="bg-slate-50 flex flex-col items-center justify-center min-h-screen p-6">
+
+    <div id="main-card" class="bg-white max-w-md w-full rounded-3xl shadow-2xl p-8 text-center opacity-0 transform translate-y-4 transition-all duration-700">
+        
+        <div class="mb-8">
+            <img id="client-logo" src="" alt="Logo" class="h-16 mx-auto mb-4 object-contain">
+            <h2 id="client-name" class="text-xl font-semibold text-slate-800 tracking-tight"></h2>
+        </div>
+
+        <p id="welcome-msg" class="text-slate-500 mb-8 font-light leading-relaxed">نتمنى أن ضيافتنا اليوم كانت بمستوى تطلعاتكم. كيف تقيم تجربتك معنا؟</p>
+
+        <div class="flex justify-between mb-10 px-2" id="rating-container">
+            <button onclick="submitRating(1)" class="star-btn text-4xl grayscale hover:grayscale-0">⭐</button>
+            <button onclick="submitRating(2)" class="star-btn text-4xl grayscale hover:grayscale-0">⭐</button>
+            <button onclick="submitRating(3)" class="star-btn text-4xl grayscale hover:grayscale-0">⭐</button>
+            <button onclick="submitRating(4)" class="star-btn text-4xl grayscale hover:grayscale-0">⭐</button>
+            <button onclick="submitRating(5)" class="star-btn text-4xl grayscale hover:grayscale-0">⭐</button>
+        </div>
+
+        <div id="status-msg" class="text-sm font-medium"></div>
+    </div>
+
+    <script>
+        // المتغيرات الأساسية
+        const WEBHOOK_URL = 'رابط_الويب_هوك_الخاص_بك_هنا';
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('booking_id');
+
+        // محاكاة جلب البيانات من Supabase بناءً على الـ booking_id
+        // في النسخة النهائية، ستقوم هنا بعمل Fetch من Supabase للحصول على هوية المطعم
+        async function fetchBranding() {
+            // سنفترض هنا وجود بيانات افتراضية بناءً على العميل
+            // يمكنك ربط هذه الجزئية بجدول المطاعم لاحقاً
+            const branding = {
+                name: "مطعمنا المتميز",
+                logo: "رابط_شعار_افتراضي", // سيتغير حسب العميل
+                primaryColor: "#0f172a" // لون الهوية البصرية
+            };
+
+            document.getElementById('client-name').innerText = branding.name;
+            document.getElementById('client-logo').src = branding.logo;
+            document.querySelector('body').style.backgroundColor = branding.primaryColor + '05'; // خلفية باهتة من لون الهوية
+            
+            // ظهور البطاقة بحركة فخمة
+            const card = document.getElementById('main-card');
+            card.classList.remove('opacity-0', 'translate-y-4');
+        }
+
+        async function submitRating(stars) {
+            if (!bookingId) {
+                alert('عذراً، الرابط غير صالح');
+                return;
+            }
+
+            const status = document.getElementById('status-msg');
+            status.innerText = "جاري إرسال تقييمك...";
+            status.classList.add('text-slate-400');
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        booking_id: bookingId,
+                        rating: stars
+                    })
+                });
+
+                if (response.ok) {
+                    document.getElementById('rating-container').innerHTML = `<p class='text-green-600 font-semibold text-lg py-4'>شكرًا لك! تم تسجيل تقييمك بنجاح.</p>`;
+                    status.innerText = "";
+                }
+            } catch (error) {
+                status.innerText = "حدث خطأ أثناء الإرسال، يرجى المحاولة لاحقاً.";
+                status.classList.add('text-red-500');
+            }
+        }
+
+        fetchBranding();
+    </script>
+</body>
+</html>
